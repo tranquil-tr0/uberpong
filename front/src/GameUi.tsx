@@ -2,11 +2,17 @@ import type { BallState, PlayerState } from "./util/communication";
 
 export interface GameUiProps {
   player: PlayerState | null;
+  otherPlayers: PlayerState[];
   ball: BallState | null;
   arenaRadius: number;
 }
 
-export function GameUi({ player, ball, arenaRadius }: GameUiProps) {
+export function GameUi({
+  player,
+  ball,
+  arenaRadius,
+  otherPlayers,
+}: GameUiProps) {
   // Arena is a circle, diameter = 2 * arenaRadius
   // Always display arena as 300px diameter
   const displayRadius = 150;
@@ -28,7 +34,12 @@ export function GameUi({ player, ball, arenaRadius }: GameUiProps) {
         boxSizing: "border-box",
       }}
     >
-      {player ? <Player player={player} scaleFactor={scaleFactor} /> : null}
+      {otherPlayers.map((player) => (
+        <Player player={player} scaleFactor={scaleFactor} mainPlayer={false} />
+      ))}
+      {player ? (
+        <Player player={player} scaleFactor={scaleFactor} mainPlayer={true} />
+      ) : null}
       {ball ? <Ball ball={ball} scaleFactor={scaleFactor} /> : null}
     </div>
   );
@@ -37,9 +48,11 @@ export function GameUi({ player, ball, arenaRadius }: GameUiProps) {
 function Player({
   player,
   scaleFactor,
+  mainPlayer,
 }: {
   player: PlayerState;
   scaleFactor: number;
+  mainPlayer: boolean;
 }) {
   const paddleX = player.paddle_x * scaleFactor;
   const paddleY = player.paddle_y * scaleFactor;
@@ -54,7 +67,7 @@ function Player({
         left: "50%",
         width: paddleThickness,
         height: paddleWidth,
-        background: "#fff",
+        background: mainPlayer ? "#ffffff" : "#858585",
         borderRadius: 8,
         transform: `translate(-50%, -50%) translate(${paddleX}px, ${paddleY}px) rotate(${player.paddle_rot}rad)`,
       }}

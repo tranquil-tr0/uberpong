@@ -17,6 +17,7 @@ function App() {
   const [playerId] = useState(uuidv4());
 
   const [player, setPlayer] = useState<PlayerState | null>(null);
+  const [otherPlayers, setOtherPlayers] = useState<PlayerState[]>([]);
   const [arenaRadius, setArenaRadius] = useState<number>(5);
   const [ball, setBall] = useState<BallState | null>(null);
 
@@ -35,6 +36,7 @@ function App() {
         setPlayer(newState.player);
         setArenaRadius(newState.arena_radius);
         setBall(newState.ball);
+        setOtherPlayers(newState.other_players);
       }
     };
     return () => {
@@ -75,7 +77,14 @@ function App() {
     updateInterval
   );
 
-  return <GameUi player={player} ball={ball} arenaRadius={arenaRadius} />;
+  return (
+    <GameUi
+      player={player}
+      otherPlayers={otherPlayers}
+      ball={ball}
+      arenaRadius={arenaRadius}
+    />
+  );
 }
 
 export default App;
