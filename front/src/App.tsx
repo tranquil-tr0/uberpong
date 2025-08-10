@@ -16,6 +16,7 @@ function App() {
 
   const [player, setPlayer] = useState<PlayerState | null>(null);
   const [arenaRadius, setArenaRadius] = useState<number>(300);
+  const [ball, setBall] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // Connect to backend WebSocket (placeholder URL)
   useEffect(() => {
@@ -31,6 +32,7 @@ function App() {
       if (newState !== null) {
         setPlayer(newState.player);
         setArenaRadius(newState.arena_radius);
+        setBall({ ...newState.ball });
       }
     };
     return () => {
@@ -105,9 +107,10 @@ function App() {
   const paddleX = paddleCenterX - PADDLE_WIDTH / 2;
   const paddleY = paddleCenterY - PADDLE_HEIGHT / 2;
 
-  // Ball position (center)
-  const ballX = centerX - BALL_SIZE / 2;
-  const ballY = centerY - BALL_SIZE / 2;
+  // Ball position from server, scaled to display units
+  // Ball position from game state, scaled to display units
+  const ballX = centerX + ball.x * SCALE - BALL_SIZE / 2;
+  const ballY = centerY + ball.y * SCALE - BALL_SIZE / 2;
 
   try {
     return (
