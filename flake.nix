@@ -20,7 +20,7 @@
     rustToolchain = pkgs.fenix.stable.toolchain;
   in {
     devShells.${system}.default = pkgs.mkShell {
-      buildInputs = with pkgs; [alejandra rustToolchain nodejs];
+      buildInputs = with pkgs; [alejandra rustToolchain nodejs pnpm];
       RUST_SRC_PATH = "${rustToolchain}/lib/rustlib/src/rust/src";
     };
   };
