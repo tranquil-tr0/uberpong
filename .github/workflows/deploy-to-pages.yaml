@@ -30,8 +30,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: cd front
-        run: cd front
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
@@ -39,8 +37,10 @@ jobs:
       - name: Setup Pnpm
         uses: pnpm/action-setup@v3
       - name: Install
+        working-directory: front
         run: pnpm install
       - name: Build
+        working-directory: front
         run: pnpm run build
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -48,7 +48,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload dist folder
-          path: './dist'
+          path: './front/dist'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
