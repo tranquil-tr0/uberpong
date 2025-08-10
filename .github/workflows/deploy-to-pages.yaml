@@ -36,6 +36,8 @@ jobs:
           node-version: 20
       - name: Setup Pnpm
         uses: pnpm/action-setup@v3
+        with:
+          version: 'latest'
       - name: Install
         working-directory: front
         run: pnpm install
