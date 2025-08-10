@@ -30,6 +30,7 @@ export interface PlayerState {
 
 interface GameStateMessage {
   ball: BallState;
+  arena_radius: number;
   players: {
     [key: string]: PlayerState;
   };
@@ -37,6 +38,7 @@ interface GameStateMessage {
 
 export interface GameState {
   ball: BallState;
+  arena_radius: number;
   player: PlayerState | null;
   other_players: PlayerState[];
 }
@@ -59,6 +61,7 @@ export function parse_game_state(
 
     return {
       ball: data.ball,
+      arena_radius: data.arena_radius,
       player,
       other_players,
     };
