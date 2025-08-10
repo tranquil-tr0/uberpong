@@ -10,13 +10,25 @@ use uuid::Uuid;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Player {
   paddle_position: f32,
+  paddle_x: f32,
+  paddle_y: f32,
+  paddle_rot: f32,
 }
 
 impl Player {
   fn new() -> Self {
     Self {
       paddle_position: 0.0,
+      paddle_x: 0.0,
+      paddle_y: 0.0,
+      paddle_rot: 0.0,
     }
+  }
+
+  fn recalculate_coordinates(&mut self, arena_radius: f32) {
+    self.paddle_x = f32::cos(self.paddle_position) * arena_radius;
+    self.paddle_y = f32::sin(self.paddle_position) * arena_radius;
+    self.paddle_rot = self.paddle_position
   }
 }
 
@@ -30,6 +42,7 @@ pub struct Ball {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GameState {
+  arena_radius: f32,
   ball: Ball,
   players: HashMap<Uuid, Player>,
 }
@@ -37,6 +50,7 @@ pub struct GameState {
 impl GameState {
   pub fn new() -> Self {
     Self {
+      arena_radius: 5.0,
       ball: Ball {
         x: 0.5,
         y: 0.5,
@@ -70,12 +84,10 @@ impl Game {
   }
 
   pub async fn add_player(&self, player_id: Uuid) {
-    self
-      .state
-      .lock()
-      .await
-      .players
-      .insert(player_id, Player::new());
+    let mut state = self.state.lock().await;
+    let mut player = Player::new();
+    player.recalculate_coordinates(state.arena_radius);
+    state.players.insert(player_id, player);
   }
 
   pub async fn remove_player(&self, player_id: &Uuid) {
@@ -83,8 +95,11 @@ impl Game {
   }
 
   pub async fn update_player_paddle(&self, player_id: Uuid, new_position: f32) {
-    if let Some(player) = self.state.lock().await.players.get_mut(&player_id) {
+    let mut state = self.state.lock().await;
+    let arena_radius = state.arena_radius;
+    if let Some(player) = state.players.get_mut(&player_id) {
       player.paddle_position = new_position;
+      player.recalculate_coordinates(arena_radius);
     }
   }
 

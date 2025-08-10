@@ -4,15 +4,17 @@ import {
   parse_game_state as parseGameState,
   send_paddle_update as sendPaddleUpdate,
   send_uuid,
+  type PlayerState,
 } from "./util/communication";
 import { v4 as uuidv4 } from "uuid";
 import { useKeyInterval } from "./hooks/useKeyInterval";
 import useEvent from "react-use-event-hook";
 
 function App() {
-  const [paddlePos, setPaddlePos] = useState(0);
-  const [playerId] = useState(uuidv4());
   const webSocket = useRef<WebSocket | null>(null);
+  const [playerId] = useState(uuidv4());
+
+  const [player, setPlayer] = useState<PlayerState | null>(null);
 
   // Connect to backend WebSocket (placeholder URL)
   useEffect(() => {
@@ -23,9 +25,9 @@ function App() {
       webSocket.current = socket;
     };
     socket.onmessage = (event) => {
-      const newState = parseGameState(event.data);
+      const newState = parseGameState(event.data, playerId);
       if (newState !== null) {
-        setPaddlePos(newState.players[playerId].paddle_position);
+        setPlayer(newState.player);
       }
     };
 
@@ -46,16 +48,23 @@ function App() {
       }
 
       const deltaTime = updateInterval / 1000;
-      setPaddlePos((pos) => {
-        const newPos = pos + paddleDelta * deltaTime;
+      setPlayer((player) => {
+        if (player == null) {
+          return null;
+        }
+
+        const newPos = player.paddle_position + paddleDelta * deltaTime;
         webSocket.current?.send(sendPaddleUpdate(newPos));
-        return newPos;
+        return {
+          ...player,
+          paddle_position: newPos,
+        };
       });
     }),
     updateInterval
   );
 
-  return <div>{Math.round(paddlePos)}</div>;
+  return <div>{Math.round(player?.paddle_position ?? NaN)}</div>;
 }
 
 export default App;
