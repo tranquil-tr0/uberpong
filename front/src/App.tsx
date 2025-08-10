@@ -6,7 +6,6 @@ const TABLE_HEIGHT = 400;
 const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 80;
 const BALL_SIZE = 16;
-const PADDLE_SPEED = 6;
 
 type Paddle = {
   y: number;
@@ -19,10 +18,6 @@ type Ball = {
   vy: number;
 };
 
-function clamp(val: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, val));
-}
-
 const initialBall: Ball = {
   x: TABLE_WIDTH / 2 - BALL_SIZE / 2,
   y: TABLE_HEIGHT / 2 - BALL_SIZE / 2,
@@ -31,17 +26,11 @@ const initialBall: Ball = {
 };
 
 function App() {
-  const [leftPaddle, setLeftPaddle] = useState<Paddle>({
-    y: TABLE_HEIGHT / 2 - PADDLE_HEIGHT / 2,
-  });
-  const [rightPaddle, setRightPaddle] = useState<Paddle>({
+  const [paddle, setPaddle] = useState<Paddle>({
     y: TABLE_HEIGHT / 2 - PADDLE_HEIGHT / 2,
   });
   const [ball, setBall] = useState<Ball>(initialBall);
-  const [scores, setScores] = useState({ left: 0, right: 0 });
   const [ws, setWs] = useState<WebSocket | null>(null);
-  const [leftConnected, setLeftConnected] = useState(false);
-  const [rightConnected, setRightConnected] = useState(false);
   const keys = useRef<{ up: boolean; down: boolean }>({
     up: false,
     down: false,
@@ -57,16 +46,8 @@ function App() {
       // Expect backend to send JSON: { leftPaddleY, rightPaddleY, ball, scores, left_connected, right_connected }
       try {
         const data = JSON.parse(event.data);
-        if (typeof data.leftPaddleY === "number")
-          setLeftPaddle({ y: data.leftPaddleY });
-        if (typeof data.rightPaddleY === "number")
-          setRightPaddle({ y: data.rightPaddleY });
+        console.log(data);
         if (data.ball) setBall(data.ball);
-        if (data.scores) setScores(data.scores);
-        if (typeof data.left_connected === "boolean")
-          setLeftConnected(data.left_connected);
-        if (typeof data.right_connected === "boolean")
-          setRightConnected(data.right_connected);
       } catch (e) {
         console.error("Invalid game state from backend", e);
       }
@@ -132,14 +113,6 @@ function App() {
   return (
     <div className="pong-container">
       <h1>UberPong Multiplayer</h1>
-      <div className="scoreboard">
-        <span>
-          Player 1: {scores.left} {leftConnected ? "🟢" : "🔴"}
-        </span>
-        <span>
-          Player 2: {scores.right} {rightConnected ? "🟢" : "🔴"}
-        </span>
-      </div>
       <div
         className="pong-table"
         style={{ width: TABLE_WIDTH, height: TABLE_HEIGHT }}

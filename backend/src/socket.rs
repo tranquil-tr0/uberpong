@@ -7,6 +7,7 @@ use uuid::Uuid;
 
 use crate::game::{Game, GameState};
 
+#[derive(Debug)]
 enum SocketEvent {
   ClientMessage(Result<Message, axum::Error>),
   GameEvent(GameState),
