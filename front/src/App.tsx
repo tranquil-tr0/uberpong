@@ -39,13 +39,13 @@ function App() {
     };
   }, [playerId]);
 
-  const updateInterval = 100;
+  const updateInterval = 20;
   useKeyInterval(
     useEvent((keys) => {
       let paddleDelta = 0;
 
       // Speed is proportional to arena size
-      const baseSpeed = arenaRadius * 0.04; // 4% of radius per second
+      const baseSpeed = DISPLAY_RADIUS * 0.04; // 4% of display radius per second
 
       if (keys.has("w")) {
         paddleDelta += baseSpeed;
@@ -74,14 +74,19 @@ function App() {
   );
 
   // Arena is a circle, diameter = 2 * arenaRadius
-  const ARENA_DIAMETER = arenaRadius * 2;
+  // Always display arena as 300px diameter
+  const DISPLAY_RADIUS = 150; // 300px diameter
+  const ARENA_DIAMETER = DISPLAY_RADIUS * 2;
+
+  // Scale factor from backend units to display units
+  const SCALE = DISPLAY_RADIUS / arenaRadius;
   const PADDLE_WIDTH = 20;
   const PADDLE_HEIGHT = 100;
   const BALL_SIZE = 20;
 
   // Center of the arena
-  const centerX = arenaRadius;
-  const centerY = arenaRadius;
+  const centerX = DISPLAY_RADIUS;
+  const centerY = DISPLAY_RADIUS;
 
   // Map paddle_position (-5 to +5) to angle on the circle (left edge = 180deg)
   // Paddle moves along the circumference
@@ -95,8 +100,8 @@ function App() {
     ((paddlePos - minPos) / (maxPos - minPos)) * (maxAngle - minAngle) +
     minAngle;
   // Place paddle on circumference
-  const paddleCenterX = centerX + arenaRadius * Math.cos(angle);
-  const paddleCenterY = centerY + arenaRadius * Math.sin(angle);
+  const paddleCenterX = centerX + DISPLAY_RADIUS * Math.cos(angle);
+  const paddleCenterY = centerY + DISPLAY_RADIUS * Math.sin(angle);
   const paddleX = paddleCenterX - PADDLE_WIDTH / 2;
   const paddleY = paddleCenterY - PADDLE_HEIGHT / 2;
 
@@ -104,7 +109,6 @@ function App() {
   const ballX = centerX - BALL_SIZE / 2;
   const ballY = centerY - BALL_SIZE / 2;
 
-  console.log("Render values:", { arenaRadius, ARENA_DIAMETER, player });
   try {
     return (
       <div
@@ -130,6 +134,7 @@ function App() {
             height: PADDLE_HEIGHT,
             background: "#fff",
             borderRadius: 8,
+            transform: `rotate(${angle}rad)`,
           }}
         />
         {/* Ball (placeholder) */}
