@@ -48,6 +48,7 @@ impl GameState {
   }
 }
 
+#[derive(Debug)]
 pub struct Game {
   state: Arc<Mutex<GameState>>,
   tx: broadcast::Sender<GameState>,
@@ -79,6 +80,12 @@ impl Game {
 
   pub async fn remove_player(&self, player_id: &Uuid) {
     self.state.lock().await.players.remove(player_id);
+  }
+
+  pub async fn update_player_paddle(&self, player_id: Uuid, new_position: f32) {
+    if let Some(player) = self.state.lock().await.players.get_mut(&player_id) {
+      player.paddle_position = new_position;
+    }
   }
 
   pub fn get_state_reciever(&self) -> broadcast::Receiver<GameState> {

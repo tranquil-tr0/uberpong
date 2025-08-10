@@ -4,6 +4,7 @@ use axum::extract::ws::{Message, WebSocket};
 use client::ClientMessage;
 use futures_concurrency::future::Race;
 use tokio::sync::broadcast;
+use uuid::Uuid;
 
 use crate::game::{Game, GameState};
 
@@ -48,7 +49,7 @@ pub async fn handle_socket(mut socket: WebSocket, game: Arc<Game>) {
 
   while let Some(event) = await_event(&mut socket, &mut rx).await {
     match event {
-      SocketEvent::ClientMessage(message) => handle_message(message).await,
+      SocketEvent::ClientMessage(message) => handle_message(message, player_id, &game).await,
       SocketEvent::GameEvent(game_state) => {
         if let Ok(message) = serde_json::to_string(&game_state) {
           let _ = socket.send(Message::Text(message)).await;
@@ -60,6 +61,17 @@ pub async fn handle_socket(mut socket: WebSocket, game: Arc<Game>) {
   game.remove_player(&player_id).await;
 }
 
-async fn handle_message(message: Result<Message, axum::Error>) {
-  println!("{message:?}")
+async fn handle_message(message: Result<Message, axum::Error>, player_id: Uuid, game: &Arc<Game>) {
+  let Message::Text(message) = message.unwrap() else {
+    return;
+  };
+
+  match serde_json::from_str(&message).unwrap() {
+    ClientMessage::Join { .. } => {
+      println!("Client sent join message while already connected");
+    }
+    ClientMessage::MovePaddle { paddle_position } => {
+      game.update_player_paddle(player_id, paddle_position).await
+    }
+  }
 }

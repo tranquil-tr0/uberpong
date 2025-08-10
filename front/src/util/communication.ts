@@ -6,6 +6,14 @@ export function send_uuid(uuid: string): string {
   });
 }
 
+export function send_paddle_update(paddlePosition: number): string {
+  return JSON.stringify({
+    MovePaddle: {
+      paddle_position: paddlePosition,
+    },
+  });
+}
+
 interface Ball {
   x: number;
   y: number;
