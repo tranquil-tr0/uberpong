@@ -1,7 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 
-export function useKeyInterval(fn: () => void, timeout: number) {
-  const keys = useRef(new Set());
+export function useKeyInterval(
+  fn: (keys: Set<string>) => void,
+  timeout: number
+) {
+  const keys: RefObject<Set<string>> = useRef(new Set());
 
   useEffect(() => {
     const keyDown = (event: KeyboardEvent) => {
@@ -15,7 +18,7 @@ export function useKeyInterval(fn: () => void, timeout: number) {
     document.addEventListener("keydown", keyDown);
     document.addEventListener("keyup", keyUp);
     const interval = setInterval(() => {
-      fn();
+      fn(keys.current);
     }, timeout);
 
     return () => {
@@ -23,5 +26,5 @@ export function useKeyInterval(fn: () => void, timeout: number) {
       document.removeEventListener("keydown", keyDown);
       document.removeEventListener("keyup", keyUp);
     };
-  });
+  }, [fn, timeout]);
 }

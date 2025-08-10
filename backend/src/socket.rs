@@ -1,11 +1,13 @@
 use std::sync::Arc;
 
 use axum::extract::ws::{Message, WebSocket};
+use client::ClientMessage;
 use futures_concurrency::future::Race;
 use tokio::sync::broadcast;
-use uuid::Uuid;
 
 use crate::game::{Game, GameState};
+
+mod client;
 
 #[derive(Debug)]
 enum SocketEvent {
@@ -26,9 +28,23 @@ async fn await_event(
 }
 
 pub async fn handle_socket(mut socket: WebSocket, game: Arc<Game>) {
-  let player_id = Uuid::new_v4();
+  let Some(player_id) = (if let Some(Ok(Message::Text(json))) = socket.recv().await {
+    if let Ok(ClientMessage::Join { uuid }) = serde_json::from_str(&json) {
+      Some(uuid)
+    } else {
+      None
+    }
+  } else {
+    None
+  }) else {
+    let _ = socket.close().await;
+    println!("Failed to connect to player");
+    return;
+  };
+
   game.add_player(player_id.clone()).await;
   let mut rx = game.get_state_reciever();
+  println!("Added player {player_id}");
 
   while let Some(event) = await_event(&mut socket, &mut rx).await {
     match event {

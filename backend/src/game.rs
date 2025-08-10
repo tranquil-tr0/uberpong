@@ -9,12 +9,14 @@ use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Player {
-  paddle_y: f32,
+  paddle_position: f32,
 }
 
 impl Player {
   fn new() -> Self {
-    Self { paddle_y: 0.0 }
+    Self {
+      paddle_position: 0.0,
+    }
   }
 }
 
