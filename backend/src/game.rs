@@ -35,7 +35,7 @@ impl Player {
     self.paddle_rot = self.paddle_position
   }
 
-  fn reflect_ball(&self, ball: &mut Ball, arena_radius: f32) {
+  fn reflect_ball(&self, ball: &mut Ball, arena_radius: f32) -> bool {
     let ball_angle = ball.y.atan2(ball.x);
     let mut angle_diff = ball_angle - self.paddle_position;
     // Normalize angle_diff to [-PI, PI]
@@ -47,7 +47,7 @@ impl Player {
     }
 
     // Convert width to sector angle in radians
-    let paddle_angle_width = self.paddle_width;
+    let paddle_angle_width = self.paddle_width / arena_radius;
 
     // Check if ball is near the arena edge and within paddle arc
     let ball_dist = ball.x.hypot(ball.y);
@@ -66,6 +66,10 @@ impl Player {
       // Move ball out of collision
       ball.x += normal_x * overlap_dist;
       ball.y += normal_y * overlap_dist;
+
+      true
+    } else {
+      false
     }
   }
 }
@@ -183,7 +187,9 @@ impl Game {
 
       // Ball-paddle collision detection and reflection
       for player in state.players.values_mut() {
-        player.reflect_ball(&mut state.ball, state.arena_radius);
+        if player.reflect_ball(&mut state.ball, state.arena_radius) {
+          break;
+        };
       }
 
       state.ball.update_position();
