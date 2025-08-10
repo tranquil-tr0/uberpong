@@ -15,23 +15,28 @@ function App() {
   const [playerId] = useState(uuidv4());
 
   const [player, setPlayer] = useState<PlayerState | null>(null);
+  const [arenaRadius, setArenaRadius] = useState<number>(300);
 
   // Connect to backend WebSocket (placeholder URL)
   useEffect(() => {
+    // Always connect socket when component mounts
     const socket = new WebSocket("ws://localhost:3000/ws");
+    webSocket.current = socket;
     socket.onopen = () => {
       console.log("Connected to backend");
       socket.send(send_uuid(playerId));
-      webSocket.current = socket;
     };
     socket.onmessage = (event) => {
       const newState = parseGameState(event.data, playerId);
       if (newState !== null) {
         setPlayer(newState.player);
+        setArenaRadius(newState.arena_radius);
       }
     };
-
-    return () => socket.close();
+    return () => {
+      socket.close();
+      webSocket.current = null;
+    };
   }, [playerId]);
 
   const updateInterval = 100;
@@ -39,12 +44,15 @@ function App() {
     useEvent((keys) => {
       let paddleDelta = 0;
 
+      // Speed is proportional to arena size
+      const baseSpeed = arenaRadius * 0.04; // 4% of radius per second
+
       if (keys.has("w")) {
-        paddleDelta += 10;
+        paddleDelta += baseSpeed;
       }
 
       if (keys.has("s")) {
-        paddleDelta -= 10;
+        paddleDelta -= baseSpeed;
       }
 
       const deltaTime = updateInterval / 1000;
@@ -53,6 +61,7 @@ function App() {
           return null;
         }
 
+        if (!player) return player;
         const newPos = player.paddle_position + paddleDelta * deltaTime;
         webSocket.current?.send(sendPaddleUpdate(newPos));
         return {
@@ -64,58 +73,83 @@ function App() {
     updateInterval
   );
 
-  // Basic Pong UI dimensions
-  const GAME_WIDTH = 800;
-  const GAME_HEIGHT = 600;
+  // Arena is a circle, diameter = 2 * arenaRadius
+  const ARENA_DIAMETER = arenaRadius * 2;
   const PADDLE_WIDTH = 20;
   const PADDLE_HEIGHT = 100;
   const BALL_SIZE = 20;
 
-  // Default paddle position if player is null
-  const paddleY = player?.paddle_position ?? GAME_HEIGHT / 2 - PADDLE_HEIGHT / 2;
+  // Center of the arena
+  const centerX = arenaRadius;
+  const centerY = arenaRadius;
 
-  // Placeholder ball position (center)
-  const ballX = GAME_WIDTH / 2 - BALL_SIZE / 2;
-  const ballY = GAME_HEIGHT / 2 - BALL_SIZE / 2;
+  // Map paddle_position (-5 to +5) to angle on the circle (left edge = 180deg)
+  // Paddle moves along the circumference
+  const paddlePos = player?.paddle_position ?? 0;
+  const minPos = -5,
+    maxPos = 5;
+  // Angle range: 135deg to 225deg (arc on left side)
+  const minAngle = (3 * Math.PI) / 4; // 135deg
+  const maxAngle = (5 * Math.PI) / 4; // 225deg
+  const angle =
+    ((paddlePos - minPos) / (maxPos - minPos)) * (maxAngle - minAngle) +
+    minAngle;
+  // Place paddle on circumference
+  const paddleCenterX = centerX + arenaRadius * Math.cos(angle);
+  const paddleCenterY = centerY + arenaRadius * Math.sin(angle);
+  const paddleX = paddleCenterX - PADDLE_WIDTH / 2;
+  const paddleY = paddleCenterY - PADDLE_HEIGHT / 2;
 
-  return (
-    <div
-      style={{
-        position: "relative",
-        width: GAME_WIDTH,
-        height: GAME_HEIGHT,
-        background: "#222",
-        border: "2px solid #fff",
-        margin: "40px auto",
-        overflow: "hidden",
-      }}
-    >
-      {/* Player Paddle */}
+  // Ball position (center)
+  const ballX = centerX - BALL_SIZE / 2;
+  const ballY = centerY - BALL_SIZE / 2;
+
+  console.log("Render values:", { arenaRadius, ARENA_DIAMETER, player });
+  try {
+    return (
       <div
         style={{
-          position: "absolute",
-          left: 30,
-          top: paddleY,
-          width: PADDLE_WIDTH,
-          height: PADDLE_HEIGHT,
-          background: "#fff",
-          borderRadius: 8,
-        }}
-      />
-      {/* Ball (placeholder) */}
-      <div
-        style={{
-          position: "absolute",
-          left: ballX,
-          top: ballY,
-          width: BALL_SIZE,
-          height: BALL_SIZE,
-          background: "#fff",
+          position: "relative",
+          width: ARENA_DIAMETER,
+          height: ARENA_DIAMETER,
+          background: "#222",
+          border: "2px solid #fff",
+          margin: "40px auto",
+          overflow: "hidden",
           borderRadius: "50%",
+          boxSizing: "border-box",
         }}
-      />
-    </div>
-  );
+      >
+        {/* Player Paddle (always show, even if player is null) */}
+        <div
+          style={{
+            position: "absolute",
+            left: paddleX,
+            top: paddleY,
+            width: PADDLE_WIDTH,
+            height: PADDLE_HEIGHT,
+            background: "#fff",
+            borderRadius: 8,
+          }}
+        />
+        {/* Ball (placeholder) */}
+        <div
+          style={{
+            position: "absolute",
+            left: ballX,
+            top: ballY,
+            width: BALL_SIZE,
+            height: BALL_SIZE,
+            background: "#fff",
+            borderRadius: "50%",
+          }}
+        />
+      </div>
+    );
+  } catch (e) {
+    console.error("Error in App render:", e);
+    return <div style={{ color: "red" }}>Render error: {String(e)}</div>;
+  }
 }
 
 export default App;
