@@ -119,6 +119,7 @@ impl Game {
 
   pub async fn remove_player(&self, player_id: &Uuid) {
     self.state.lock().await.players.remove(player_id);
+    println!("Removed player: {}", player_id);
   }
 
   pub async fn update_player_paddle(&self, player_id: Uuid, new_position: f32) {
