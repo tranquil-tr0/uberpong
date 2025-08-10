@@ -15,6 +15,7 @@ pub struct Player {
   paddle_x: f32,
   paddle_y: f32,
   paddle_rot: f32,
+  paddle_width: f32,
 }
 
 impl Player {
@@ -24,6 +25,7 @@ impl Player {
       paddle_x: 0.0,
       paddle_y: 0.0,
       paddle_rot: 0.0,
+      paddle_width: 30.0,
     }
   }
 
@@ -40,6 +42,7 @@ pub struct Ball {
   y: f32,
   vx: f32,
   vy: f32,
+  radius: f32,
 }
 
 impl Ball {
@@ -49,6 +52,7 @@ impl Ball {
       y: 0.0,
       vx: 0.0,
       vy: 0.0,
+      radius: 3.0,
     };
 
     ball.reset();
@@ -60,7 +64,7 @@ impl Ball {
     self.y = 0.0;
 
     let dir = rand::rng().random_range(0.0..f32::consts::TAU);
-    let magnitude = 0.1;
+    let magnitude = 1.0;
 
     self.vx = magnitude * f32::cos(dir);
     self.vy = magnitude * f32::sin(dir);
@@ -82,7 +86,7 @@ pub struct GameState {
 impl GameState {
   pub fn new() -> Self {
     Self {
-      arena_radius: 5.0,
+      arena_radius: 50.0,
       ball: Ball::new(),
       players: HashMap::new(),
     }
@@ -144,7 +148,7 @@ impl Game {
 
       state.ball.update_position();
       let ball_distance = state.ball.x.hypot(state.ball.y);
-      if ball_distance > state.arena_radius + 1.0 {
+      if ball_distance > state.arena_radius + state.ball.radius * 2.0 {
         state.ball.reset();
       }
 

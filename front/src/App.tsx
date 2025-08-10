@@ -46,7 +46,7 @@ function App() {
   const updateInterval = 20;
   useKeyInterval(
     useEvent((keys) => {
-      const baseSpeed = 6;
+      const baseSpeed = 1;
       let paddleDelta = 0;
 
       if (keys.has("w")) {
@@ -63,7 +63,7 @@ function App() {
           return null;
         }
 
-        if (!player) return player;
+        if (!player || paddleDelta === 0) return player;
         const newPos = player.paddle_position + paddleDelta * deltaTime;
         webSocket.current?.send(sendPaddleUpdate(newPos));
         return {

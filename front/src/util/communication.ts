@@ -19,6 +19,7 @@ export interface BallState {
   y: number;
   vx: number;
   vy: number;
+  radius: number;
 }
 
 export interface PlayerState {
@@ -26,6 +27,7 @@ export interface PlayerState {
   paddle_x: number;
   paddle_y: number;
   paddle_rot: number;
+  paddle_width: number;
 }
 
 interface GameStateMessage {

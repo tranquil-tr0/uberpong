@@ -9,47 +9,17 @@ export interface GameUiProps {
 export function GameUi({ player, ball, arenaRadius }: GameUiProps) {
   // Arena is a circle, diameter = 2 * arenaRadius
   // Always display arena as 300px diameter
-  const DISPLAY_RADIUS = 150; // 300px diameter
-  const ARENA_DIAMETER = DISPLAY_RADIUS * 2;
+  const displayRadius = 150;
 
   // Scale factor from backend units to display units
-  const SCALE = DISPLAY_RADIUS / arenaRadius;
-  const PADDLE_WIDTH = 20;
-  const PADDLE_HEIGHT = 100;
-  const BALL_SIZE = 20;
-
-  // Center of the arena
-  const centerX = DISPLAY_RADIUS;
-  const centerY = DISPLAY_RADIUS;
-
-  // Map paddle_position (-5 to +5) to angle on the circle (left edge = 180deg)
-  // Paddle moves along the circumference
-  const paddlePos = player?.paddle_position ?? 0;
-  const minPos = -5,
-    maxPos = 5;
-  // Angle range: 135deg to 225deg (arc on left side)
-  const minAngle = (3 * Math.PI) / 4; // 135deg
-  const maxAngle = (5 * Math.PI) / 4; // 225deg
-  const angle =
-    ((paddlePos - minPos) / (maxPos - minPos)) * (maxAngle - minAngle) +
-    minAngle;
-  // Place paddle on circumference
-  const paddleCenterX = centerX + DISPLAY_RADIUS * Math.cos(angle);
-  const paddleCenterY = centerY + DISPLAY_RADIUS * Math.sin(angle);
-  const paddleX = paddleCenterX - PADDLE_WIDTH / 2;
-  const paddleY = paddleCenterY - PADDLE_HEIGHT / 2;
-
-  // Ball position from server, scaled to display units
-  // Ball position from game state, scaled to display units
-  const ballX = centerX + (ball?.x ?? 0) * SCALE - BALL_SIZE / 2;
-  const ballY = centerY + (ball?.y ?? 0) * SCALE - BALL_SIZE / 2;
+  const scaleFactor = displayRadius / arenaRadius;
 
   return (
     <div
       style={{
         position: "relative",
-        width: ARENA_DIAMETER,
-        height: ARENA_DIAMETER,
+        width: displayRadius * 2,
+        height: displayRadius * 2,
         background: "#222",
         border: "2px solid #fff",
         margin: "40px auto",
@@ -58,31 +28,57 @@ export function GameUi({ player, ball, arenaRadius }: GameUiProps) {
         boxSizing: "border-box",
       }}
     >
-      {/* Player Paddle (always show, even if player is null) */}
-      <div
-        style={{
-          position: "absolute",
-          left: paddleX,
-          top: paddleY,
-          width: PADDLE_WIDTH,
-          height: PADDLE_HEIGHT,
-          background: "#fff",
-          borderRadius: 8,
-          transform: `rotate(${angle}rad)`,
-        }}
-      />
-      {/* Ball (placeholder) */}
-      <div
-        style={{
-          position: "absolute",
-          left: ballX,
-          top: ballY,
-          width: BALL_SIZE,
-          height: BALL_SIZE,
-          background: "#fff",
-          borderRadius: "50%",
-        }}
-      />
+      {player ? <Player player={player} scaleFactor={scaleFactor} /> : null}
+      {ball ? <Ball ball={ball} scaleFactor={scaleFactor} /> : null}
     </div>
+  );
+}
+
+function Player({
+  player,
+  scaleFactor,
+}: {
+  player: PlayerState;
+  scaleFactor: number;
+}) {
+  const paddleX = player.paddle_x * scaleFactor;
+  const paddleY = player.paddle_y * scaleFactor;
+  const paddleWidth = player.paddle_width * scaleFactor;
+  const paddleThickness = 20;
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        width: paddleThickness,
+        height: paddleWidth,
+        background: "#fff",
+        borderRadius: 8,
+        transform: `translate(-50%, -50%) translate(${paddleX}px, ${paddleY}px) rotate(${player.paddle_rot}rad)`,
+      }}
+    />
+  );
+}
+
+function Ball({ ball, scaleFactor }: { ball: BallState; scaleFactor: number }) {
+  const ballX = ball.x * scaleFactor;
+  const ballY = ball.y * scaleFactor;
+  const ballDiameter = ball.radius * 2 * scaleFactor;
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        width: ballDiameter,
+        height: ballDiameter,
+        background: "#fff",
+        borderRadius: "50%",
+        transform: `translate(-50%, -50%) translate(${ballX}px, ${ballY}px)`,
+      }}
+    />
   );
 }
