@@ -1,5 +1,5 @@
 use core::f32;
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{collections::HashMap, ops::DerefMut, sync::Arc, time::Duration};
 
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -33,6 +33,40 @@ impl Player {
     self.paddle_x = f32::cos(self.paddle_position) * arena_radius;
     self.paddle_y = f32::sin(self.paddle_position) * arena_radius;
     self.paddle_rot = self.paddle_position
+  }
+
+  fn reflect_ball(&self, ball: &mut Ball, arena_radius: f32) {
+    let ball_angle = ball.y.atan2(ball.x);
+    let mut angle_diff = ball_angle - self.paddle_position;
+    // Normalize angle_diff to [-PI, PI]
+    while angle_diff > f32::consts::PI {
+      angle_diff -= 2.0 * f32::consts::PI;
+    }
+    while angle_diff < -f32::consts::PI {
+      angle_diff += 2.0 * f32::consts::PI;
+    }
+
+    // Convert width to sector angle in radians
+    let paddle_angle_width = self.paddle_width;
+
+    // Check if ball is near the arena edge and within paddle arc
+    let ball_dist = ball.x.hypot(ball.y);
+    let overlap_dist = ball_dist - (arena_radius - ball.radius);
+
+    if (overlap_dist > 0.0) && (angle_diff.abs() < paddle_angle_width / 2.0) {
+      // Paddle normal (outward from center)
+      let normal_x = -f32::cos(self.paddle_position);
+      let normal_y = -f32::sin(self.paddle_position);
+
+      // Reflect ball velocity
+      let dot = ball.vx * normal_x + ball.vy * normal_y;
+      ball.vx -= 2.0 * dot * normal_x;
+      ball.vy -= 2.0 * dot * normal_y;
+
+      // Move ball out of collision
+      ball.x += normal_x * overlap_dist;
+      ball.y += normal_y * overlap_dist;
+    }
   }
 }
 
@@ -144,7 +178,13 @@ impl Game {
 
     loop {
       game_tick.tick().await;
-      let mut state = self.state.lock().await;
+      let mut state_guard = self.state.lock().await;
+      let state = state_guard.deref_mut();
+
+      // Ball-paddle collision detection and reflection
+      for player in state.players.values_mut() {
+        player.reflect_ball(&mut state.ball, state.arena_radius);
+      }
 
       state.ball.update_position();
       let ball_distance = state.ball.x.hypot(state.ball.y);
