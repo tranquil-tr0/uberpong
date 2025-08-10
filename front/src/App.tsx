@@ -77,13 +77,15 @@ function App() {
     updateInterval
   );
 
-  return (
+  return webSocket ? (
     <GameUi
       player={player}
       otherPlayers={otherPlayers}
       ball={ball}
       arenaRadius={arenaRadius}
     />
+  ) : (
+    "Server not found, is it running on localhost?"
   );
 }
 
