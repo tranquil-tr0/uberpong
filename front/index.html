@@ -1,31 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>UberPong Multiplayer</title>
-    <style>
-      body {
-        background: #222;
-        color: #fff;
-        font-family: sans-serif;
-      }
-      canvas {
-        background: #111;
-        display: block;
-        margin: 40px auto;
-        border: 2px solid #fff;
-      }
-      #score {
-        text-align: center;
-        font-size: 2em;
-        margin-top: 10px;
-      }
-    </style>
+    <title>Vite + React + TS</title>
   </head>
   <body>
-    <div id="score">0 : 0</div>
-    <canvas id="pong" width="800" height="600"></canvas>
-    <script src="main.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

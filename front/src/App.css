@@ -1,0 +1,93 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+body {
+  background: #181818;
+  color: #fff;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.pong-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 32px;
+}
+
+.scoreboard {
+  display: flex;
+  justify-content: space-between;
+  width: 320px;
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+}
+
+.pong-table {
+  position: relative;
+  background: #222;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.paddle {
+  position: absolute;
+  background: #fff;
+  border-radius: 4px;
+}
+.paddle.left {
+  left: 0;
+}
+.paddle.right {
+  right: 0;
+}
+
+.ball {
+  position: absolute;
+  background: #ffeb3b;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #ffeb3b88;
+}
+
+.controls {
+  margin-top: 8px;
+  color: #bbb;
+}
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
