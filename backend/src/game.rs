@@ -1,5 +1,7 @@
+use core::f32;
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use tokio::{
   sync::{Mutex, broadcast},
@@ -40,6 +42,36 @@ pub struct Ball {
   vy: f32,
 }
 
+impl Ball {
+  pub fn new() -> Self {
+    let mut ball = Self {
+      x: 0.0,
+      y: 0.0,
+      vx: 0.0,
+      vy: 0.0,
+    };
+
+    ball.reset();
+    ball
+  }
+
+  pub fn reset(&mut self) {
+    self.x = 0.0;
+    self.y = 0.0;
+
+    let dir = rand::rng().random_range(0.0..f32::consts::TAU);
+    let magnitude = 0.1;
+
+    self.vx = magnitude * f32::cos(dir);
+    self.vy = magnitude * f32::sin(dir);
+  }
+
+  pub fn update_position(&mut self) {
+    self.x += self.vx;
+    self.y += self.vy;
+  }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GameState {
   arena_radius: f32,
@@ -51,12 +83,7 @@ impl GameState {
   pub fn new() -> Self {
     Self {
       arena_radius: 5.0,
-      ball: Ball {
-        x: 0.5,
-        y: 0.5,
-        vx: 0.01,
-        vy: 0.01,
-      },
+      ball: Ball::new(),
       players: HashMap::new(),
     }
   }
@@ -79,8 +106,8 @@ impl Game {
     }
   }
 
-  pub async fn send_state_update(&self) {
-    let _ = self.tx.send(self.state.lock().await.clone());
+  async fn send_state_update(&self, state: GameState) {
+    let _ = self.tx.send(state);
   }
 
   pub async fn add_player(&self, player_id: Uuid) {
@@ -112,7 +139,15 @@ impl Game {
 
     loop {
       game_tick.tick().await;
-      self.send_state_update().await;
+      let mut state = self.state.lock().await;
+
+      state.ball.update_position();
+      let ball_distance = state.ball.x.hypot(state.ball.y);
+      if ball_distance > state.arena_radius + 1.0 {
+        state.ball.reset();
+      }
+
+      self.send_state_update(state.clone()).await;
     }
   }
 }
