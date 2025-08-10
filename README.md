@@ -9,11 +9,16 @@ To run, you need to (a) run the server, and (b) open the webpage
 `cd backend`
 `cargo run`
 
-### To run the dev server
+### To open the website
+
+Open `https://tranquil-tr0.github.io/uberpong/` in your web browser
+You can open many tabs and they will all run on the server you just ran.
+
+If you want to run a local version on vite:
 
 `cd front`
 `pnpm install`
 `pnpm run dev`
 
 Then navigate to `http://localhost:5173/` to open the webpage.
-You can open many tabs and they will all run on the server you just ran.
+
