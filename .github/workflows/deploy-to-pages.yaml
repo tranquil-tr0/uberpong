@@ -38,8 +38,8 @@ jobs:
           node-version: 20
       - name: Setup Pnpm
         uses: pnpm/action-setup@v3
-        with:
-          run_install: true
+      - name: Install
+        run: pnpm install
       - name: Build
         run: pnpm run build
       - name: Setup Pages
